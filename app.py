@@ -3,6 +3,7 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from json import loads, dumps
 from datetime import datetime
+import random
 
 app = Flask(__name__)
 app.debug = True
@@ -39,15 +40,11 @@ def create():
             res.append(v)
         return {"data": res}
     elif (request.method == "POST"):
-        body = loads(request.data.decode())
+        body = loads(request.data.decode() if request.data else b'{}')
         name = body.get("name")
         stake = body.get("stake")
         if name and stake:
-            book = Validators(
-                name=name,
-                stake=stake,
-                createdAt=datetime.now()
-            )
+            book = Validators(name=name, stake=stake, createdAt=datetime.now())
             db.session.add(book)
             db.session.commit()
             return "Criado com sucesso"
@@ -69,13 +66,13 @@ def validator(id):
             return "Validator not found"
 
     elif request.method == "PUT":
-        body = loads(request.data.decode())
+        body = loads(request.data.decode() if request.data else b'{}')
         name = body.get("name")
         stake = body.get("stake")
         validator = Validators.query.get(id)
         if validator:
-            validator.name = name
-            validator.stake = stake
+            validator.name = name if name else validator.name
+            validator.stake = stake if stake else validator.stake
             db.session.commit()
 
             return "Atualizado com sucesso"
@@ -90,6 +87,23 @@ def validator(id):
 
     else:
         return f'Method {request.method} not allowed'
+
+@app.route('/validate/<string:hash>', methods=['GET'])
+def validate(hash):
+    validators = Validators.query.all()
+    sum = 0
+    for v in validators:
+        sum += v.stake
+    value = random.uniform(0, sum)
+    sum = 0
+    elected = ""
+    for v in validators:
+        if value > v.stake + sum:
+            sum += v.stake
+        else:
+            elected = v.name
+            break
+    return {"data": elected}
 
 @app.route('/<string:page>')
 def error(page):
