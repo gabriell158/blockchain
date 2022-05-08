@@ -3,7 +3,7 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from json import loads, dumps
 from datetime import datetime
-import random
+from random import random, uniform
 
 app = Flask(__name__)
 app.debug = True
@@ -94,7 +94,7 @@ def validate(hash):
     sum = 0
     for v in validators:
         sum += v.stake
-    value = random.uniform(0, sum)
+    value = uniform(0, sum)
     sum = 0
     elected = ""
     for v in validators:
@@ -103,7 +103,9 @@ def validate(hash):
         else:
             elected = v.name
             break
-    return {"data": elected}
+    valid = True if random() > 0.5 else False
+
+    return {"data": {"elected": elected, "valid": valid}}
 
 @app.route('/<string:page>')
 def error(page):
