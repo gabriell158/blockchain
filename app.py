@@ -83,7 +83,7 @@ def validator(id):
         validator = Validators.query.get(id)
         db.session.delete(validator)
         db.session.commit()
-        return redirect('/')
+        return "Validador apagado com sucesso"
 
     else:
         return f'Method {request.method} not allowed'
