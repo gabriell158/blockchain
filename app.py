@@ -22,8 +22,10 @@ class Validators(db.Model):
 
     createdAt = db.Column(db.Integer, unique=False, nullable=False)
 
+    ip = db.Column(db.Integer, unique=False, nullable=False)
+
     def __repr__(self):
-        return f"id:{self.id},name:{self.name},stake:{self.stake},createdAt:{self.createdAt}"
+        return f"id:{self.id},name:{self.name},stake:{self.stake},createdAt:{self.createdAt}, ip:{self.ip}"
 
 @app.route('/')
 def home():
@@ -44,8 +46,10 @@ def create():
             body = loads(request.data.decode() if request.data else b'{}')
             name = body.get("name")
             stake = body.get("stake")
+            ip = body.get("ip")
+            
             if name and stake:
-                book = Validators(name=name, stake=stake, createdAt=datetime.now())
+                book = Validators(name=name, stake=stake, createdAt=datetime.now(), ip=ip)
                 db.session.add(book)
                 db.session.commit()
                 return "Criado com sucesso"
@@ -73,10 +77,12 @@ def validator(id):
             body = loads(request.data.decode() if request.data else b'{}')
             name = body.get("name")
             stake = body.get("stake")
+            ip = body.get("ip")
             validator = Validators.query.get(id)
             if validator:
                 validator.name = name if name else validator.name
                 validator.stake = stake if stake else validator.stake
+                validator.ip = ip if ip else validator.ip
                 db.session.commit()
 
                 return "Atualizado com sucesso"
