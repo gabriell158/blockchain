@@ -1,3 +1,4 @@
 .history
-blockchain.db
+*.db
 __pycache__
+**/[Tt]est*

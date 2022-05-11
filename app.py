@@ -31,81 +31,90 @@ def home():
 
 @app.route('/validator', methods=["GET", "POST"])
 def create():
-    if (request.method == "GET"):
-        validators = Validators.query.all()
-        res = []
-        for v in validators:
-            v = v.__dict__
-            v.pop('_sa_instance_state')
-            res.append(v)
-        return {"data": res}
-    elif (request.method == "POST"):
-        body = loads(request.data.decode() if request.data else b'{}')
-        name = body.get("name")
-        stake = body.get("stake")
-        if name and stake:
-            book = Validators(name=name, stake=stake, createdAt=datetime.now())
-            db.session.add(book)
-            db.session.commit()
-            return "Criado com sucesso"
+    try:
+        if (request.method == "GET"):
+            validators = Validators.query.all()
+            res = []
+            for v in validators:
+                v = v.__dict__
+                v.pop('_sa_instance_state')
+                res.append(v)
+            return {"data": res}
+        elif (request.method == "POST"):
+            body = loads(request.data.decode() if request.data else b'{}')
+            name = body.get("name")
+            stake = body.get("stake")
+            if name and stake:
+                book = Validators(name=name, stake=stake, createdAt=datetime.now())
+                db.session.add(book)
+                db.session.commit()
+                return "Criado com sucesso"
 
+            else:
+                return "name and stake are required"
         else:
-            return "name and stake are required"
-    else:
-        return f'Method {request.method} not allowed'
+            return f'Method {request.method} not allowed'
+    except Exception as e:
+        return str(e)
 
 @app.route('/validator/<int:id>', methods=["GET", "PUT", "DELETE"])
 def validator(id):
-    if request.method == "GET":
-        validator = Validators.query.get(id)
-        if validator:
-            validator = validator.__dict__
-            validator.pop('_sa_instance_state')
-            return validator
-        else:
-            return "Validator not found"
+    try:
+        if request.method == "GET":
+            validator = Validators.query.get(id)
+            if validator:
+                validator = validator.__dict__
+                validator.pop('_sa_instance_state')
+                return validator
+            else:
+                return "Validator not found"
 
-    elif request.method == "PUT":
-        body = loads(request.data.decode() if request.data else b'{}')
-        name = body.get("name")
-        stake = body.get("stake")
-        validator = Validators.query.get(id)
-        if validator:
-            validator.name = name if name else validator.name
-            validator.stake = stake if stake else validator.stake
+        elif request.method == "PUT":
+            body = loads(request.data.decode() if request.data else b'{}')
+            name = body.get("name")
+            stake = body.get("stake")
+            validator = Validators.query.get(id)
+            if validator:
+                validator.name = name if name else validator.name
+                validator.stake = stake if stake else validator.stake
+                db.session.commit()
+
+                return "Atualizado com sucesso"
+            else:
+                return "Validador não encontrado"
+
+        elif request.method == "DELETE":
+            validator = Validators.query.get(id)
+            db.session.delete(validator)
             db.session.commit()
+            return "Validador apagado com sucesso"
 
-            return "Atualizado com sucesso"
         else:
-            return "Validador não encontrado"
-
-    elif request.method == "DELETE":
-        validator = Validators.query.get(id)
-        db.session.delete(validator)
-        db.session.commit()
-        return "Validador apagado com sucesso"
-
-    else:
-        return f'Method {request.method} not allowed'
+            return f'Method {request.method} not allowed'
+    except Exception as e:
+        return str(e)
 
 @app.route('/validate/<string:hash>', methods=['GET'])
 def validate(hash):
-    validators = Validators.query.all()
-    sum = 0
-    for v in validators:
-        sum += v.stake
-    value = uniform(0, sum)
-    sum = 0
-    elected = ""
-    for v in validators:
-        if value > v.stake + sum:
+    try:
+        validators = Validators.query.all()
+        sum = 0
+        for v in validators:
             sum += v.stake
-        else:
-            elected = v.name
-            break
-    valid = True if random() > 0.5 else False
+        value = uniform(0, sum)
+        sum = 0
+        elected = ""
+        for v in validators:
+            if value > v.stake + sum:
+                sum += v.stake
+            else:
+                elected = v.name
+                break
+        valid = True if random() > 0.5 else False
 
-    return {"data": {"elected": elected, "valid": valid}}
+        return {"data": {"elected": elected, "valid": valid}}
+    except Exception as e:
+        return str(e)
 
 @app.route('/<string:page>')
 def error(page):
