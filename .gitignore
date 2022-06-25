@@ -2,3 +2,4 @@
 *.db
 __pycache__
 **/[Tt]est*
+node_modules
