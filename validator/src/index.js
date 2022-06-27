@@ -1,9 +1,9 @@
 const express = require("express");
 const schedule = require("node-schedule");
+require("dotenv").config();
 
 const gerenciador = require("./services/gerenciador");
 
-require("dotenv").config();
 
 const key = process.env.KEY;
 
@@ -11,7 +11,7 @@ const agora = new Date();
 
 schedule.scheduleJob("*/5 * * * * *", async () => {
   const { data: hora } = await gerenciador.get("/hora").catch((err) => {
-    console.error(err);
+    console.error(err.response ? err.response.statusText : err);
     return { data: undefined };
   });
   if (hora) {
@@ -23,7 +23,7 @@ const app = express();
 
 app.use(express.json());
 
-app.get("/", (req, res) => res.send("hello world"));
+app.get("/", (req, res) => res.send("documentacao"));
 
 app.get("/validate", async (req, res) => {
   let { remetente, recebedor, valor, horario } = req.query;

@@ -1,14 +1,29 @@
 const express = require("express");
+const schedule = require("node-schedule");
+
+require("dotenv").config();
+
 const { Validator } = require("./database/mongodb");
 const { getRandomInt } = require("./provider/random");
+const gerenciador = require("./services/gerenciador");
+
+const agora = new Date();
+
+schedule.scheduleJob("*/5 * * * * *", async () => {
+  const { data: hora } = await gerenciador.get("/hora").catch((err) => {
+    console.error(err.response ? err.response.statusText : err);
+    return { data: undefined };
+  });
+  if (hora) {
+    agora.setTime(new Date(hora));
+  }
+});
 
 const app = express();
 
-const port = 3000;
-
 app.use(express.json());
 
-app.get("/", (req, res) => res.send("hello world"));
+app.get("/", (req, res) => res.send("documentacao"));
 
 app.post("/validator", async (req, res) => {
   const { name, ip, stake = 0 } = req.body;
@@ -36,7 +51,8 @@ app.delete("/validator/:id", async (req, res) => {
   return res.send(await Validator.deleteOne({ _id: id }));
 });
 
-app.get("/elect", async (req, res) => {
+app.get("/validate", async (req, res) => {
+  const { remetente, recebedor, valor, horario } = req.query;
   const validators = await Validator.find();
   let sum = 0;
   for (const validator of validators) {
@@ -44,18 +60,36 @@ app.get("/elect", async (req, res) => {
   }
   let value = getRandomInt(0, sum);
   sum = 0;
-  let elected = "";
+  let elected;
   for (const validator of validators) {
     if (value > validator.stake + sum) {
       sum += validator.stake;
     } else {
-      elected = validator.name;
+      elected = validator;
       break;
     }
   }
+  const api = axios.create({
+    baseURL: "http://" + elected.ip,
+  });
 
-  return res.send(elected);
+  const { data: key } = await api
+    .get(
+      `/validate?remetente=${remetente},recebedor=${recebedor},valor=${valor},horario=${horario}`
+    )
+    .catch((err) => {
+      console.error(err.response ? err.response.statusText : err);
+      return {};
+    });
+
+  if (key) {
+    if (key === elected._id) return res.send("Trancasao aprovada");
+    return res.status(400).send("Chave do validador invalida");
+  }
+  res.status(400).send("Transacao nao aprovada");
 });
+
+const port = 3000;
 
 app.listen(port, () => {
   console.log(`Example app listening on port ${port}`);
