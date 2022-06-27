@@ -2,9 +2,10 @@ const express = require("express");
 const schedule = require("node-schedule");
 
 const gerenciador = require("./services/gerenciador");
-const seletor = require("./services/seletor");
 
-const key = "";
+require("dotenv").config();
+
+const key = process.env.KEY;
 
 const agora = new Date();
 
@@ -15,21 +16,17 @@ schedule.scheduleJob("*/5 * * * * *", async () => {
   });
   if (hora) {
     agora.setTime(new Date(hora));
-    // console.log(agora);
   }
 });
 
 const app = express();
-
-const port = 8000;
 
 app.use(express.json());
 
 app.get("/", (req, res) => res.send("hello world"));
 
 app.get("/validate", async (req, res) => {
-  let { id, remetente, recebedor, valor, horario } = req.query;
-  id = +id;
+  let { remetente, recebedor, valor, horario } = req.query;
   remetente = +remetente;
   recebedor = +recebedor;
   valor = +valor;
@@ -61,7 +58,9 @@ app.get("/validate", async (req, res) => {
     (transaction) => transaction.remetente === remetente
   );
 
-  transactions.sort();
+  transactions.sort((a, b) =>
+    new Date(a.horario) > new Date(b.horario) ? -1 : 1
+  );
 
   transactions = transactions.slice(0, 4);
 
@@ -89,6 +88,13 @@ app.get("/validate", async (req, res) => {
   return res.send(key);
 });
 
-app.listen(port, () => {
-  console.log(`App listening on port ${port}`);
-});
+const port = 8000;
+
+if (key) {
+  app.listen(port, () => {
+    console.log(`App listening on port ${port}`);
+  });
+} else {
+  console.error("Sem chave do seletor");
+  process.exit();
+}

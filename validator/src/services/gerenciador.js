@@ -1,7 +1,7 @@
 const axios = require("axios");
 
 const api = axios.create({
-  baseURL: "http://localhost:5000",
+  baseURL: process.env.API_GERENCIADOR,
 });
 
 module.exports = api;

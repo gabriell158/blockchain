@@ -3,3 +3,4 @@
 __pycache__
 **/[Tt]est*
 node_modules
+.env
