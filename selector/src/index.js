@@ -1,6 +1,6 @@
 const express = require("express");
 const { Validator } = require("./database/mongodb");
-const { getRandomInt } = require("./provider/random")
+const { getRandomInt } = require("./provider/random");
 
 const app = express();
 
@@ -8,37 +8,32 @@ const port = 3000;
 
 app.use(express.json());
 
-app.get("/", (req, res) => res.json({ message: "hello world" }));
+app.get("/", (req, res) => res.send("hello world"));
 
 app.post("/validator", async (req, res) => {
   const { name, ip, stake = 0 } = req.body;
 
-  const sla = await Validator.create({ name, ip, stake });
-  return res.json({ ok: sla });
+  return res.send(await Validator.create({ name, ip, stake }));
 });
 
 app.get("/validator", async (req, res) => {
-  const sla = await Validator.find({});
-  return res.json({ ok: sla });
+  return res.send(await Validator.find({}));
 });
 
 app.get("/validator/:id", async (req, res) => {
   const { id } = req.params;
-  const sla = await Validator.find({ _id: id });
-  return res.json({ sla });
+  return res.send(await Validator.find({ _id: id }));
 });
 
 app.put("/validator/:id", async (req, res) => {
   const { id } = req.params;
   const { name, ip, stake } = req.body;
-  const sla = await Validator.updateOne({ _id: id }, { name, ip, stake });
-  return res.json({ sla });
+  return res.send(await Validator.updateOne({ _id: id }, { name, ip, stake }));
 });
 
 app.delete("/validator/:id", async (req, res) => {
   const { id } = req.params;
-  const sla = await Validator.deleteOne({ _id: id });
-  return res.json({ sla });
+  return res.send(await Validator.deleteOne({ _id: id }));
 });
 
 app.get("/elect", async (req, res) => {
