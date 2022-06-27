@@ -4,7 +4,6 @@ require("dotenv").config();
 
 const gerenciador = require("./services/gerenciador");
 
-
 const key = process.env.KEY;
 
 const agora = new Date();
@@ -34,9 +33,10 @@ app.get("/validate", async (req, res) => {
   const { data: rem } = await gerenciador
     .get(`/cliente/${remetente}`)
     .catch((err) => {
-      console.log(err);
+      console.log(err.response ? err.response.statusText : err);
       return { data: undefined };
     });
+  if (!rem) return res.status(400).send("Remetente nao encontrado");
 
   const { qtdMoeda } = rem;
   if (valor > qtdMoeda) {

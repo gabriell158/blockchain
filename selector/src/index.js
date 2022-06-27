@@ -1,5 +1,6 @@
 const express = require("express");
 const schedule = require("node-schedule");
+const axios = require("axios");
 
 require("dotenv").config();
 
@@ -69,21 +70,21 @@ app.get("/validate", async (req, res) => {
       break;
     }
   }
+
   const api = axios.create({
-    baseURL: "http://" + elected.ip,
+    baseURL: "http://" + elected.ip + "/",
   });
 
   const { data: key } = await api
     .get(
-      `/validate?remetente=${remetente},recebedor=${recebedor},valor=${valor},horario=${horario}`
+      `/validate?remetente=${remetente}&recebedor=${recebedor}&valor=${valor}&horario=${horario}`
     )
     .catch((err) => {
       console.error(err.response ? err.response.statusText : err);
       return {};
     });
-
   if (key) {
-    if (key === elected._id) return res.send("Trancasao aprovada");
+    if (key === elected._id.toString()) return res.send("Trancasao aprovada");
     return res.status(400).send("Chave do validador invalida");
   }
   res.status(400).send("Transacao nao aprovada");
