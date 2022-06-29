@@ -30,27 +30,41 @@ app.get("/", (req, res) => res.send("documentacao"));
 app.post("/validator", async (req, res) => {
   const { name, ip, stake = 0 } = req.body;
 
-  return res.send(await Validator.create({ name, ip, stake }));
+  return res.send(
+    await Validator.create({ name, ip, stake }).catch(
+      () => "Falha ao cadastrar o validador"
+    )
+  );
 });
 
 app.get("/validator", async (req, res) => {
-  return res.send(await Validator.find({}));
+  return res.send(
+    await Validator.find({}).catch(() => "Falha ao listar os validadores")
+  );
 });
 
 app.get("/validator/:id", async (req, res) => {
   const { id } = req.params;
-  return res.send(await Validator.find({ _id: id }));
+  return res.send(
+    await Validator.find({ _id: id }).catch(() => "Falha ao listar o validador")
+  );
 });
 
 app.put("/validator/:id", async (req, res) => {
   const { id } = req.params;
   const { name, ip, stake } = req.body;
-  return res.send(await Validator.updateOne({ _id: id }, { name, ip, stake }));
+  return res.send(
+    await Validator.updateOne({ _id: id }, { name, ip, stake }).catch(
+      () => "Falha ao atualizar o validador"
+    )
+  );
 });
 
 app.delete("/validator/:id", async (req, res) => {
   const { id } = req.params;
-  return res.send(await Validator.deleteOne({ _id: id }));
+  return res
+    .send(await Validator.deleteOne({ _id: id }))
+    .catch((err) => "Falha ao apagar o validador");
 });
 
 app.get("/validate", async (req, res) => {
@@ -60,7 +74,14 @@ app.get("/validate", async (req, res) => {
       "remetente, recebedor, valor e horario precisam ser fornecidos"
     );
   }
-  const validators = await Validator.find();
+  const validators = await Validator.find().catch(() => []);
+  if (!validators.length) {
+    return res
+      .status(400)
+      .send(
+        "Falha ao buscar validadores no banco de dados. Tente novamente mais tarde"
+      );
+  }
   let sum = 0;
   for (const validator of validators) {
     sum += validator.stake;
@@ -77,7 +98,8 @@ app.get("/validate", async (req, res) => {
     }
   }
 
-  if(!elected) return res.status(400).send("Não foi possível encontrar um validador")
+  if (!elected)
+    return res.status(400).send("Não foi possível encontrar um validador");
   const api = axios.create({
     baseURL: "http://" + elected.ip + "/",
   });
@@ -86,7 +108,7 @@ app.get("/validate", async (req, res) => {
     .get(
       `/validate?remetente=${remetente}&recebedor=${recebedor}&valor=${valor}&horario=${horario}`
     )
-    .catch((err) => {
+    .catch(() => {
       console.error("Não foi possível validar a transação");
       return {};
     });
