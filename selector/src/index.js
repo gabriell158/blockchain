@@ -54,6 +54,11 @@ app.delete("/validator/:id", async (req, res) => {
 
 app.get("/validate", async (req, res) => {
   const { remetente, recebedor, valor, horario } = req.query;
+  if (!remetente || !recebedor || !valor || !horario) {
+    return res.send(
+      "remetente, recebedor, valor e horario precisam ser fornecidos"
+    );
+  }
   const validators = await Validator.find();
   let sum = 0;
   for (const validator of validators) {

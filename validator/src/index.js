@@ -26,6 +26,11 @@ app.get("/", (req, res) => res.send("documentacao"));
 
 app.get("/validate", async (req, res) => {
   let { remetente, recebedor, valor, horario } = req.query;
+  if (!remetente || !recebedor || !valor || !horario) {
+    return res.send(
+      "remetente, recebedor, valor e horario precisam ser fornecidos"
+    );
+  }
   remetente = +remetente;
   recebedor = +recebedor;
   valor = +valor;
@@ -34,7 +39,7 @@ app.get("/validate", async (req, res) => {
     .get(`/cliente/${remetente}`)
     .catch((err) => {
       console.log(err.response ? err.response.statusText : err);
-      return { data: undefined };
+      return {};
     });
   if (!rem) return res.status(400).send("Remetente nao encontrado");
 
@@ -51,7 +56,7 @@ app.get("/validate", async (req, res) => {
     .get("/transacoes")
     .catch((err) => {
       console.error(err);
-      return { data: undefined };
+      return {};
     });
 
   transactions = transactions.filter(
