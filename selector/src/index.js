@@ -5,7 +5,7 @@ const axios = require("axios");
 require("dotenv").config();
 
 const { Validator } = require("./database/mongodb");
-const { getRandomInt } = require("./provider/random");
+const { getRandomInt } = require("./providers/random");
 const gerenciador = require("./services/gerenciador");
 
 const agora = new Date();
