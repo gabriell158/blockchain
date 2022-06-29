@@ -1,5 +1,5 @@
 const express = require("express");
-const schedule = require("node-schedule");
+const { scheduleJob } = require("node-schedule");
 const axios = require("axios");
 
 require("dotenv").config();
@@ -10,12 +10,13 @@ const gerenciador = require("./services/gerenciador");
 
 const agora = new Date();
 
-schedule.scheduleJob("*/5 * * * * *", async () => {
+scheduleJob("*/5 * * * * *", async () => {
   const { data: hora } = await gerenciador.get("/hora").catch((err) => {
-    console.error(err.response ? err.response.statusText : err);
+    console.error("Não foi possível sincronizar com o gerenciador");
     return { data: undefined };
   });
   if (hora) {
+    // console.log(hora);
     agora.setTime(new Date(hora));
   }
 });
@@ -76,6 +77,7 @@ app.get("/validate", async (req, res) => {
     }
   }
 
+  if(!elected) return res.status(400).send("Não foi possível encontrar um validador")
   const api = axios.create({
     baseURL: "http://" + elected.ip + "/",
   });
@@ -85,7 +87,7 @@ app.get("/validate", async (req, res) => {
       `/validate?remetente=${remetente}&recebedor=${recebedor}&valor=${valor}&horario=${horario}`
     )
     .catch((err) => {
-      console.error(err.response ? err.response.statusText : err);
+      console.error("Não foi possível validar a transação");
       return {};
     });
   if (key) {

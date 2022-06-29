@@ -1,5 +1,5 @@
 const express = require("express");
-const schedule = require("node-schedule");
+const { scheduleJob } = require("node-schedule");
 require("dotenv").config();
 
 const gerenciador = require("./services/gerenciador");
@@ -8,9 +8,9 @@ const key = process.env.KEY;
 
 const agora = new Date();
 
-schedule.scheduleJob("*/5 * * * * *", async () => {
+scheduleJob("*/5 * * * * *", async () => {
   const { data: hora } = await gerenciador.get("/hora").catch((err) => {
-    console.error(err.response ? err.response.statusText : err);
+    console.error("Não foi possível sincronizar com o gerenciador");
     return { data: undefined };
   });
   if (hora) {
@@ -38,7 +38,7 @@ app.get("/validate", async (req, res) => {
   const { data: rem } = await gerenciador
     .get(`/cliente/${remetente}`)
     .catch((err) => {
-      console.log(err.response ? err.response.statusText : err);
+      console.log("Houve um problema ao tentar recuperar dados do cliente");
       return {};
     });
   if (!rem) return res.status(400).send("Remetente nao encontrado");
@@ -55,7 +55,7 @@ app.get("/validate", async (req, res) => {
   let { data: transactions } = await gerenciador
     .get("/transacoes")
     .catch((err) => {
-      console.error(err);
+      console.error("Houve um problema ao tentar recuperar as transações do cliente");
       return {};
     });
 
