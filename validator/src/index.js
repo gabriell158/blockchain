@@ -38,7 +38,7 @@ app.get("/validate", async (req, res) => {
   const { data: rem } = await gerenciador
     .get(`/cliente/${remetente}`)
     .catch((err) => {
-      console.log("Houve um problema ao tentar recuperar dados do cliente");
+      console.error("Houve um problema ao tentar recuperar dados do cliente");
       return {};
     });
   if (!rem) return res.status(400).send("Remetente nao encontrado");
@@ -55,13 +55,28 @@ app.get("/validate", async (req, res) => {
   let { data: transactions } = await gerenciador
     .get("/transacoes")
     .catch((err) => {
-      console.error("Houve um problema ao tentar recuperar as transações do cliente");
-      return {};
+      console.error(
+        "Houve um problema ao tentar recuperar as transações do cliente"
+      );
+      return { data: [] };
     });
+
+  if (!transactions.length)
+    return res
+      .status(400)
+      .send("Houve um problema ao tentar recuperar as transações do cliente");
 
   transactions = transactions.filter(
     (transaction) => transaction.remetente === remetente
   );
+  if (!transactions.length) {
+    console.error(
+      "Não foi possível encontrar nenhuma transação para este cliente"
+    );
+    return res
+      .status(400)
+      .send("Não foi possível encontrar nenhuma transação para este cliente");
+  }
 
   transactions.sort((a, b) =>
     new Date(a.horario) > new Date(b.horario) ? -1 : 1

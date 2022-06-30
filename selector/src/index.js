@@ -86,6 +86,7 @@ app.get("/validate", async (req, res) => {
   for (const validator of validators) {
     sum += validator.stake;
   }
+  // sum = validators.reduce((total, value) => total.stake + value.stake);
   let value = getRandomInt(0, sum);
   sum = 0;
   let elected;
@@ -113,7 +114,7 @@ app.get("/validate", async (req, res) => {
       return {};
     });
   if (key) {
-    if (key === elected._id.toString()) return res.send("Trancasao aprovada");
+    if (key === elected._id.toString()) return res.send("Transação aprovada");
     return res.status(400).send("Chave do validador invalida");
   }
   res.status(400).send("Transacao nao aprovada");
